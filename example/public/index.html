@@ -2,7 +2,13 @@
   <head>
     <script src="js/houndify.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
-    <script src="https://maps.googleapis.com/maps/api/js?libraries=places&language=en&key=AIzaSyAtoszqCetsFUoTZh1JriuiuM0p5Y3JeGw"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?libraries=places&language=en&key=AIzaSyBA-mYyac06pPSDvKi1RE1XPAQhLhKdxxY"></script>
+    <!-- AIzaSyBA-mYyac06pPSDvKi1RE1XPAQhLhKdxxY -->
+    <!-- <script type="text/javascript">
+      gapi.load('auth2', function() {
+        // Library loaded.
+      });
+    </script> -->
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.2.4/semantic.min.css"
@@ -63,6 +69,16 @@
       var clientID = 'ZZcQgdZ81mNp1DXV9BJoqA==';
       var conversationState = null;
       var voiceRequest = null;
+
+      const fullStackLatitude = 40.7049444;
+      const fullStackLongitude = -74.0091771;
+
+      const origin1 = new google.maps.LatLng(
+        fullStackLatitude,
+        fullStackLongitude
+      );
+
+      var xhr = new XMLHttpRequest();
 
       var recorder = new Houndify.AudioRecorder();
       recorder.on('start', function() {
@@ -166,8 +182,8 @@
           //See https://houndify.com/reference/RequestInfo
           requestInfo: {
             UserID: 'test_user',
-            Latitude: 37.388309,
-            Longitude: -121.973968
+            Latitude: fullStackLatitude,
+            Longitude: fullStackLatitude
           },
 
           //Pass the current ConversationState stored from previous queries
@@ -236,7 +252,8 @@
       //Fires after server responds with Response JSON
       //Info object contains useful information about the completed request
       //See https://houndify.com/reference/HoundServer
-      function onResponse(response, info) {
+      async function onResponse(response, info) {
+        const service = new google.maps.DistanceMatrixService();
         if (response.AllResults && response.AllResults.length) {
           let lat = Number(
             response.AllResults[0].InformationNuggets[0].DestinationMapLocationSpec.Latitude.c.join(
@@ -247,7 +264,6 @@
                   .DestinationMapLocationSpec.Latitude.s
               )
           );
-
           let long = Number(
             response.AllResults[0].InformationNuggets[0].DestinationMapLocationSpec.Longitude.c.join(
               '.'
@@ -257,19 +273,59 @@
                   .DestinationMapLocationSpec.Longitude.s
               )
           );
-          console.log(response, info);
-          console.log(
-            'in function on response index.html',
-            lat,
-            long
-            // response.AllResults[0],
-            // response.AllResults[0].InformationNuggets[0].DestinationMapLocationSpec.Latitude.c.join(
-            //   '.'
-            // ),
-            // response.AllResults[0].InformationNuggets[0].DestinationMapLocationSpec.Longitude.c.join(
-            //   '.'
-            // )
+
+          const destinationA = new google.maps.LatLng(lat, long);
+          service.getDistanceMatrix(
+            {
+              origins: [origin1],
+              destinations: [destinationA],
+              travelMode: google.maps.TravelMode.DRIVING,
+              unitSystem: google.maps.UnitSystem.IMPERIAL,
+              avoidHighways: false,
+              avoidTolls: false
+            },
+            callback
           );
+
+          function callback(response, status) {
+            console.log('response in callback', response);
+            if (status == 'OK') {
+              var origins = response.originAddresses;
+              var destinations = response.destinationAddresses;
+
+              for (var i = 0; i < origins.length; i++) {
+                var results = response.rows[i].elements;
+                for (var j = 0; j < results.length; j++) {
+                  var element = results[j];
+                  var distance = element.distance.text;
+                  var duration = element.duration.text;
+                  var from = origins[i];
+                  var to = destinations[j];
+                }
+              }
+            }
+          }
+
+          // fetch(
+          //   `https://maps.googleapis.com/maps/api/distancematrix/json?units=imperial&origins=${fullStackLatitude},${fullStackLongitude}&destinations=${lat}%${long}%key=AIzaSyAtoszqCetsFUoTZh1JriuiuM0p5Y3JeGw`
+          // )
+          //   .then(function(response) {
+          //     // The response is a Response instance.
+          //     // You parse the data into a useable format using `.json()`
+          //     return response.json();
+          //   })
+          //   .then(function(data) {
+          //     // `data` is the parsed version of the JSON returned from the above endpoint.
+          //     console.log(data); // { "userId": 1, "id": 1, "title": "...", "body": "..." }
+          //   });
+          // console.log(
+          //   xhr.open(
+          //     'GET',
+          //     `https://maps.googleapis.com/maps/api/distancematrix/json?units=imperial&origins=${fullStackLatitude},${fullStackLongitude}&destinations=${lat}%${long}%key=AIzaSyAtoszqCetsFUoTZh1JriuiuM0p5Y3JeGw`
+          //   )
+          // );
+          console.log(response, info);
+          console.log('in function on response index.html', lat, long);
           //Pick and store appropriate ConversationState from the results.
           //This example takes the default one from the first result.
           conversationState = response.AllResults[0].ConversationState;
