@@ -238,24 +238,24 @@
       //See https://houndify.com/reference/HoundServer
       function onResponse(response, info) {
         if (response.AllResults && response.AllResults.length) {
-          if (
-            response.AllResults[0].InformationNuggets[0]
-              .DestinationMapLocationSpec.Latitude.s === '-1'
-          ) {
-            let lat = Number(
-              response.AllResults[0].InformationNuggets[0].DestinationMapLocationSpec.Latitude.c.join(
-                '.'
-              ) * -1
-            );
-          }
-          if (
-            response.AllResults[0].InformationNuggets[0]
-              .DestinationMapLocationSpec.Longitude.s === '-1'
-          )
+          let lat = Number(
+            response.AllResults[0].InformationNuggets[0].DestinationMapLocationSpec.Latitude.c.join(
+              '.'
+            ) *
+              Number(
+                response.AllResults[0].InformationNuggets[0]
+                  .DestinationMapLocationSpec.Latitude.s
+              )
+          );
+
           let long = Number(
             response.AllResults[0].InformationNuggets[0].DestinationMapLocationSpec.Longitude.c.join(
               '.'
-            ) * -1
+            ) *
+              Number(
+                response.AllResults[0].InformationNuggets[0]
+                  .DestinationMapLocationSpec.Longitude.s
+              )
           );
           console.log(response, info);
           console.log(
