@@ -9,8 +9,10 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@google-cloud/text-to-speech": "^0.5.1",
     "express": "^4.16.4",
     "houndify": "^2.3.4",
-    "minimist": "^1.2.0"
+    "minimist": "^1.2.0",
+    "react": "^16.8.6"
   }
 }
